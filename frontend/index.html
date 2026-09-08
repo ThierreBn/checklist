@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang ="en">
+    <head>
+        <title>Checklist</title>
+        <meta charset="UTF-8">
+        <script src="script.js" defer></script>
+        <link rel="stylesheet" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+        <link href="https://googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="background">
+            <h1>MY CHECKLIST</h1>
+            <p>Hey, Dev! Let's organize!</p>
+            <div class="leftcorner"></div>
+            <div class="list-space">
+                <ul id="list"></ul>
+            </div>
+            <dialog class="task-container">
+                <h1>Create Task</h1>
+                <p>Add a new task to your checklist.</p>
+
+                <div class="title-container">
+                    <input class="title" id="title" placeholder=" ">
+                    <label for="title-container">Title</label>
+                </div>
+
+                <div class="description-container">
+                    <textarea class="description" id="description" placeholder=" "></textarea>
+                    <label for="description">Description</label>
+                </div>
+
+                <div class="priority-container">
+                    <select class="priority" id="priority">
+                        <option value="" disabled selected hidden></option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                    <label for="priority">Priority</label>
+                </div>
+
+                <div class="due-date-container">
+                    <label for="due-date">Due Date</label>
+                    <input id="due-date" type="date">
+                </div>
+
+                <button class="close-task-manager">X</button>
+                <button class="create-task">Create</button>
+            </dialog>
+            <button class="open-task-manager">
+                <span>+</span>
+                    Add New Task
+            </button>
+        </div>  
+    </body>
+</html>
