@@ -1,15 +1,6 @@
 const http = require("node:http");
 
-const tasks = [
-  {
-    id: 1,
-    title: "Study Node.js",
-    description: "Learn how HTTP requests work",
-    dueDate: "2026-09-10",
-    priority: "high",
-    completed: false,
-  },
-];
+const tasks = [];
 
 const httpStatusCodes = {
   // 1xx Informational
@@ -89,6 +80,8 @@ function checkValidDate(data) {
   return true;
 }
 
+let nextTaskId = 0;
+
 const server = http.createServer(function (req, res) {
   if (req.method === "GET" && req.url === "/tasks") {
     res.setHeader("Content-Type", "application/json");
@@ -108,8 +101,12 @@ const server = http.createServer(function (req, res) {
         return statusCodeMessage(res, 400);
       }
 
+      if (!data.title || !data.description || !data.dueDate || !data.priority) {
+        return statusCodeMessage(res, 400);
+      }
+
       const newTask = {
-        id: tasks.length + 1,
+        id: ++nextTaskId,
         title: data.title,
         description: data.description,
         dueDate: data.dueDate,
@@ -117,10 +114,8 @@ const server = http.createServer(function (req, res) {
         completed: false,
       };
 
-      if (!data.title || !data.description || !data.dueDate || !data.priority) {
-        return statusCodeMessage(res, 400);
-      }
       tasks.push(newTask);
+
       res.statusCode = 201;
       res.setHeader("Content-Type", "application/json");
       res.end(JSON.stringify(newTask));
@@ -142,7 +137,6 @@ const server = http.createServer(function (req, res) {
     const task = findTaskById(id);
 
     if (!task) {
-      console.log("AAA");
       return statusCodeMessage(res, 404);
     }
 
@@ -191,6 +185,28 @@ const server = http.createServer(function (req, res) {
       res.setHeader("Content-Type", "application/json");
       res.end(JSON.stringify(task));
     });
+    return;
+  }
+  if (req.method === "DELETE" && req.url.startsWith("/tasks/")) {
+    const urlArray = req.url.split("/");
+    const id = Number(urlArray[2]);
+
+    if (Number.isInteger(id) !== true || urlArray.length > 3) {
+      return statusCodeMessage(res, 400);
+    }
+
+    const index = tasks.findIndex(function (task) {
+      return task.id === id;
+    });
+
+    if (index === -1) {
+      return statusCodeMessage(res, 404);
+    }
+
+    tasks.splice(index, 1);
+
+    res.statusCode = 204;
+    res.end();
     return;
   }
   return statusCodeMessage(res, 404);
