@@ -1,7 +1,7 @@
 const http = require("node:http");
 
 const taskController = require("./controllers/taskController.js");
-const { statusCodeMessage } = require("./helpers.js");
+const { statusCodeMessage } = require("./utils/http.js");
 
 const server = http.createServer(function (req, res) {
   if (req.method === "GET" && req.url === "/tasks") {
@@ -14,7 +14,7 @@ const server = http.createServer(function (req, res) {
   }
 
   if (req.method === "PATCH" && req.url.startsWith("/tasks/")) {
-    taskController.alterTask(req, res);
+    taskController.updateTask(req, res);
     return;
   }
 

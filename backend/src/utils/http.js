@@ -1,5 +1,3 @@
-const tasksStore = require("./tasksStore");
-
 const httpStatusCodes = {
   // 1xx Informational
   100: { success: true, message: "Continue" },
@@ -35,12 +33,6 @@ const httpStatusCodes = {
   504: { success: false, message: "Gateway Timeout" },
 };
 
-function findTaskById(id) {
-  return tasksStore.tasks.find(function (task) {
-    return task.id === id;
-  });
-}
-
 function statusCodeMessage(res, code) {
   res.statusCode = code;
   res.setHeader("Content-Type", "application/json");
@@ -48,55 +40,4 @@ function statusCodeMessage(res, code) {
   return;
 }
 
-function checkValidDate(data) {
-  const newTaskDueDate = data.dueDate;
-
-  if (typeof newTaskDueDate !== "string") {
-    return false;
-  }
-
-  const splitNewTaskDueDate = newTaskDueDate.split("-");
-
-  const newTaskTime = splitNewTaskDueDate.map(Number);
-
-  const date = new Date(newTaskTime[0], newTaskTime[1] - 1, newTaskTime[2]);
-  const dateArray = [date.getFullYear(), date.getMonth(), date.getDate()];
-  const timeArray = [newTaskTime[0], newTaskTime[1] - 1, newTaskTime[2]];
-
-  for (let i = 0; i < dateArray.length; i++) {
-    if (dateArray[i] !== timeArray[i]) {
-      return false;
-    }
-  }
-
-  if (
-    splitNewTaskDueDate.length !== 3 ||
-    !newTaskTime.every(Number.isInteger)
-  ) {
-    return false;
-  }
-  return true;
-}
-
-function escapeHTML(str) {
-  const trimmed = data.title.trim();
-
-  return trimmed.replace(/[&<>"'/]/g, function (match) {
-    const htmlEntities = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#x27;",
-      "/": "&#x2F;",
-    };
-    return htmlEntities[match];
-  });
-}
-
-module.exports = {
-  findTaskById,
-  statusCodeMessage,
-  checkValidDate,
-  escapeHTML,
-};
+module.exports = statusCodeMessage;
