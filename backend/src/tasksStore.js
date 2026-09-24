@@ -12,8 +12,7 @@ function findTaskById(id) {
 }
 
 function taskPush(task) {
-  tasks.push(task);
-  return {};
+  return tasks.push(task);
 }
 
 function assignData(task, data) {

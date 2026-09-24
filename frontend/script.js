@@ -1,95 +1,189 @@
 const list = document.getElementById("list");
-const background = document.querySelector(".background");
-const bto = document.querySelector(".open-task-manager");
-const taskManager = document.querySelector(".task-container");
-const btcl = document.querySelector(".close-task-manager");
-const btc = document.querySelector(".create-task");
+const btc = document.getElementById("create-task");
+const btd = document.getElementById("details");
+const editDialog = document.getElementById("edit-dialog");
+const bet = document.getElementById("edit-task");
 
-function openTaskManager() {
-  taskManager.showModal();
-  background.style.filter = "blur(2px)";
-}
+let temporaryId;
+let editingTaskElement;
 
-function closeTaskManager() {
-  taskManager.close();
-  background.style.filter = "blur(0px)";
-}
-
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Escape" && taskManager.open) {
-    event.preventDefault();
-  }
-});
-
-btcl.addEventListener("click", closeTaskManager);
-bto.addEventListener("click", openTaskManager);
-
-btc.addEventListener("click", function () {
-  let newTask = document.createElement("li");
-  const title = document.querySelector(".title");
-  const description = document.querySelector(".description");
-  const priority = document.querySelector(".priority");
-
-  const task = document.createElement("div");
-  const headerDiv = document.createElement("div");
-  const descDiv = document.createElement("div");
-  const h3 = document.createElement("h3");
-  const p = document.createElement("p");
-  const span = document.createElement("span");
-  const checkbox = document.createElement("input");
-  const dueDate = document.getElementById("due-date");
+function renderTask(task) {
+  const li = document.createElement("li");
+  const newTaskDiv = document.createElement("div");
+  const titleContent = document.createElement("h3");
+  const descriptionContent = document.createElement("p");
   const dueDateContent = document.createElement("span");
-  const bte = document.createElement("button");
+  const priorityContent = document.createElement("span");
+  const editTitle = document.getElementById("edit-title");
+  const editDescription = document.getElementById("edit-description");
+  const editPriority = document.getElementById("edit-priority");
+  const editDueDate = document.getElementById("edit-due-date");
 
-  checkbox.type = "checkbox";
+  titleContent.classList.add("task-title");
+  descriptionContent.classList.add("task-description");
+  dueDateContent.classList.add("task-due-date");
+  priorityContent.classList.add("task-priority");
 
-  bte.textContent = ">";
+  const dbt = document.createElement("button");
+  const ebt = document.createElement("button");
 
-  bte.classList.add("expand-task-button");
-  headerDiv.classList.add("header-task-div");
-  checkbox.classList.add("task-check");
-  descDiv.classList.add("desc-div");
-  task.classList.add("task-div");
+  editDialog.classList.add("edit-dialog");
 
-  bte.addEventListener("click", function () {
-    descDiv.classList.toggle("extended-task-div");
+  dbt.addEventListener("click", deleteTask);
+
+  ebt.addEventListener("click", function (event) {
+    temporaryId = task.id;
+    editingTaskElement = event.target.closest("li");
+
+    editDialog.showModal();
+    editTitle.value = task.title;
+    editDescription.value = task.description;
+    editDueDate.value = task.dueDate;
+    editPriority.value = task.priority;
   });
 
-  dueDateContent.textContent = dueDate.value;
-  h3.textContent = title.value;
-  p.textContent = description.value;
-  span.textContent = priority.value;
+  ebt.textContent = "edit";
+  dbt.textContent = "delete";
+  li.dataset.id = task.id;
+  titleContent.textContent = task.title;
+  descriptionContent.textContent = task.description;
+  dueDateContent.textContent = task.dueDate;
+  priorityContent.textContent = task.priority;
 
-  if (h3.textContent.trim() !== "" && span.textContent.trim() !== "") {
-    headerDiv.append(checkbox, h3, span, dueDateContent, bte);
-    descDiv.appendChild(p);
-    task.append(headerDiv, descDiv);
-    newTask.appendChild(task);
+  newTaskDiv.append(
+    dbt,
+    ebt,
+    titleContent,
+    descriptionContent,
+    dueDateContent,
+    priorityContent,
+  );
 
-    list.appendChild(newTask);
-    taskManager.close();
-    background.style.filter = "blur(0px)";
+  li.appendChild(newTaskDiv);
 
-    title.value = "";
-    description.value = "";
-    priority.value = "";
-    dueDate.value = "";
-  }
-});
+  return li;
+}
 
-list.addEventListener("change", function (event) {
-  if (event.target.classList.contains("task-check")) {
-    const taskDiv = document.querySelector(".task-div");
-    const checkbox = taskDiv.querySelector(".task-check");
-    const h3TaskDiv = taskDiv.querySelector("h3");
+async function editTask() {
+  const editTitle = document.getElementById("edit-title");
+  const editDescription = document.getElementById("edit-description");
+  const editPriority = document.getElementById("edit-priority");
+  const editDueDate = document.getElementById("edit-due-date");
+  const id = temporaryId;
 
-    if (checkbox.checked) {
-      checkbox.style.accentColor = "#87A987";
-      h3TaskDiv.style.color = "#87A987";
-      h3TaskDiv.style.textDecoration = "line-through";
+  const newTask = {
+    title: editTitle.value,
+    description: editDescription.value,
+    dueDate: editDueDate.value,
+    priority: editPriority.value,
+  };
+
+  try {
+    const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTask),
+    });
+
+    if (response.ok) {
+      const task = await response.json();
+
+      editingTaskElement.querySelector(".task-title").textContent = task.title;
+      editingTaskElement.querySelector(".task-description").textContent =
+        task.description;
+      editingTaskElement.querySelector(".task-due-date").textContent =
+        task.dueDate;
+      editingTaskElement.querySelector(".task-priority").textContent =
+        task.priority;
+      editDialog.close();
     } else {
-      checkbox.style.accentColor = "";
-      h3TaskDiv.style.color = "";
+      const error = await response.json();
+
+      console.log(response.status);
+      console.log(error);
     }
+  } catch (error) {
+    console.log(error);
   }
-});
+}
+
+bet.addEventListener("click", editTask);
+
+async function loadTasks() {
+  const response = await fetch("http://localhost:3000/tasks");
+  const tasks = await response.json();
+
+  for (const task of tasks) {
+    const li = renderTask(task);
+    list.appendChild(li);
+  }
+}
+
+async function deleteTask(clickEvent) {
+  const li = clickEvent.target.closest("li");
+  const id = li.dataset.id;
+  try {
+    const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      li.remove();
+    } else {
+      const error = await response.json();
+
+      console.log(response.status);
+      console.log(error);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function createTask() {
+  const title = document.getElementById("title");
+  const description = document.getElementById("description");
+  const dueDate = document.getElementById("date");
+  const priority = document.getElementById("priority");
+
+  const newTask = {
+    title: title.value,
+    description: description.value,
+    dueDate: dueDate.value,
+    priority: priority.value,
+  };
+  try {
+    const response = await fetch("http://localhost:3000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTask),
+    });
+
+    if (response.ok) {
+      const task = await response.json();
+
+      const li = renderTask(task);
+
+      list.appendChild(li);
+
+      title.value = "";
+      description.value = "";
+      dueDate.value = "";
+      priority.value = "";
+    } else {
+      const error = await response.json();
+
+      console.log(response.status);
+      console.log(error);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+btc.addEventListener("click", createTask);
+loadTasks();

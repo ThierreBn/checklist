@@ -29,6 +29,7 @@ The project is currently being developed as a full-stack application, with a Nod
 - HTML
 - CSS
 - JavaScript
+- Fetch API
 
 ## API Endpoints
 
@@ -81,12 +82,15 @@ Deletes an existing task.
 
 The project is divided into two main parts:
 
-- `backend` — Node.js API
+- `backend` — Node.js API and application logic
 - `frontend` — Checklist user interface
 
-The backend contains the Node.js API and its business logic.
+The backend follows a basic layered structure:
 
-The frontend contains the user interface of the checklist.
+- `controllers` — handles HTTP requests and responses
+- `services` — contains application and business logic
+- `store` — manages the in-memory task data
+- `utils` — reusable utility functions
 
 ## Running the Project
 
@@ -100,22 +104,44 @@ node src/index.js
 
 The server will run on port `3000`.
 
+### Frontend
+
+Open the frontend using a local development server, such as VS Code Live Server.
+
+The frontend communicates with the backend through the API using the Fetch API.
+
 ## Current Status
 
-The backend currently supports:
+The project currently has a functional full-stack CRUD flow.
+
+### Backend
 
 - `GET /tasks`
 - `POST /tasks`
 - `PATCH /tasks/:id`
 - `DELETE /tasks/:id`
+- Input validation
+- Basic error handling
+- Controller / Service / Store separation
+- In-memory data storage
+- CORS configuration
+
+### Frontend
+
+- Create tasks through the API
+- Load tasks from the API
+- Edit tasks through the API
+- Delete tasks through the API
+- Update the DOM after successful API operations
+- Basic error handling
 
 The project is still under development.
 
 ## Future Improvements
 
-- Connect the frontend to the backend
-- Add a database
+- Replace in-memory storage with PostgreSQL
 - Add automated tests
-- Improve validation
+- Improve validation and error handling
 - Add authentication
+- Add Docker
 - Deploy the application
