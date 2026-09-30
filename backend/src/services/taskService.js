@@ -1,7 +1,7 @@
-const tasksStore = require("../tasksStore");
 const helpers = require("../utils/helpers");
+const repository = require("../repositories/taskRepository");
 
-function createTask(data) {
+async function createTask(data) {
   if (
     data === null ||
     Array.isArray(data) ||
@@ -44,41 +44,48 @@ function createTask(data) {
   }
 
   const newTask = {
-    id: tasksStore.addNextTaskId(),
     title: data.title,
     description: data.description,
     dueDate: data.dueDate,
     priority: data.priority,
-    completed: false,
   };
 
-  tasksStore.taskPush(newTask);
-
-  return newTask;
+  const task = await repository.createTask(newTask);
+  return task;
 }
 
-function updateTask(id, data) {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+async function updateTask(id, data) {
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    Array.isArray(data) ||
+    Object.keys(data).length === 0
+  ) {
+    return {
+      success: false,
+      error: "INVALID_DATA",
+    };
+  }
+  const validKeys = [
+    "title",
+    "description",
+    "dueDate",
+    "priority",
+    "completed",
+  ];
+
+  const allKeysAreValid = Object.keys(data).every(function (key) {
+    return validKeys.includes(key);
+  });
+
+  if (!allKeysAreValid) {
     return {
       success: false,
       error: "INVALID_DATA",
     };
   }
 
-  const task = tasksStore.findTaskById(id);
-
-  if (!task) {
-    return {
-      success: false,
-      error: "TASK_NOT_FOUND",
-    };
-  }
-
-  const newDataKeys = Object.keys(data);
   const validPriority = ["low", "medium", "high"];
-  const isValidOperation = newDataKeys.every(function (key) {
-    return task.hasOwnProperty(key);
-  });
 
   if (Object.hasOwn(data, "completed")) {
     if (typeof data.completed !== "boolean") {
@@ -106,18 +113,7 @@ function updateTask(id, data) {
       };
     }
   }
-  if (Object.hasOwn(data, "id")) {
-    return {
-      success: false,
-      error: "INVALID_DATA",
-    };
-  }
-  if (!isValidOperation) {
-    return {
-      success: false,
-      error: "INVALID_DATA",
-    };
-  }
+
   if (Object.hasOwn(data, "title")) {
     if (typeof data.title !== "string") {
       return {
@@ -150,23 +146,27 @@ function updateTask(id, data) {
       };
     }
   }
+  const task = await repository.updateTask(data, id);
 
-  tasksStore.assignData(task, data);
-
+  if (!task) {
+    return {
+      success: false,
+      error: "TASK_NOT_FOUND",
+    };
+  }
   return task;
 }
 
-function deleteTask(id) {
-  const index = tasksStore.findIndexById(id);
+async function deleteTask(id) {
+  const returned = await repository.deleteTask(id);
 
-  if (index === -1) {
+  if (returned === 0) {
     return {
       success: false,
       error: "TASK_NOT_FOUND",
     };
   }
 
-  tasksStore.spliceTask(index);
   return {
     success: true,
   };

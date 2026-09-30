@@ -1,8 +1,10 @@
-const { tasks, taskPush } = require("../tasksStore");
 const statusCodeMessage = require("../utils/http");
 const taskService = require("../services/taskService");
+const repository = require("../repositories/taskRepository");
 
-function getTasks(req, res) {
+async function getTasks(req, res) {
+  const tasks = await repository.getAllTasks();
+
   res.setHeader("Content-Type", "application/json");
   res.end(JSON.stringify(tasks));
   return;
@@ -13,7 +15,7 @@ function createTasks(req, res) {
   req.on("data", function (chunk) {
     body += chunk;
   });
-  req.on("end", function () {
+  req.on("end", async function () {
     let data;
     try {
       data = JSON.parse(body);
@@ -21,7 +23,7 @@ function createTasks(req, res) {
       return statusCodeMessage(res, 400);
     }
 
-    const serviceReturn = taskService.createTask(data);
+    const serviceReturn = await taskService.createTask(data);
 
     if (Object.hasOwn(serviceReturn, "error")) {
       if (serviceReturn.error === "INVALID_DATA") {
@@ -49,7 +51,7 @@ function updateTask(req, res) {
   req.on("data", function (chunk) {
     body += chunk;
   });
-  req.on("end", function () {
+  req.on("end", async function () {
     let data;
     try {
       data = JSON.parse(body);
@@ -60,7 +62,7 @@ function updateTask(req, res) {
       return statusCodeMessage(res, 400);
     }
 
-    const serviceReturn = taskService.updateTask(id, data);
+    const serviceReturn = await taskService.updateTask(id, data);
 
     if (Object.hasOwn(serviceReturn, "error")) {
       if (serviceReturn.error === "INVALID_DATA") {
@@ -78,7 +80,7 @@ function updateTask(req, res) {
   });
 }
 
-function deleteTask(req, res) {
+async function deleteTask(req, res) {
   const urlArray = req.url.split("/");
   const id = Number(urlArray[2]);
 
@@ -86,7 +88,7 @@ function deleteTask(req, res) {
     return statusCodeMessage(res, 400);
   }
 
-  const serviceReturn = taskService.deleteTask(id);
+  const serviceReturn = await taskService.deleteTask(id);
 
   if (Object.hasOwn(serviceReturn, "error")) {
     if (serviceReturn.error === "INVALID_DATA") {
